@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plant Disease Detection</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to right, #e9f5e9, #c4e0c4);
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            animation: gradient 10s ease infinite;
+            background-size: 600% 600%;
+            position: relative;
+            background-image: url('https://img.freepik.com/free-vector/green-plant-doodle-frame-vector_53876-118630.jpg?w=1060&t=st=1729588506~exp=1729589106~hmac=fb6dafe282d48180a95943b361d0dc4aedae3801f53068234f611b6f9086e9ed');
+            background-size: cover;
+        }
+
+        .navbar {
+            background-color: #4CAF50;
+        }
+
+        .navbar-brand {
+            color: white;
+        }
+
+        .container {
+            flex: 1; /* Allow the container to take available space */
+            margin-top: 100px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .card {
+            border-radius: 15px;
+            box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.1);
+            position: relative;
+            z-index: 10;
+        }
+
+        .btn-custom {
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 50px;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .btn-custom:hover {
+            background-color: #45a049;
+            transform: scale(1.05);
+        }
+
+        .progress-bar {
+            background-color: #4CAF50;
+        }
+
+        .fact-box {
+            margin-top: 20px;
+            font-style: italic;
+            background-color: #f2fff2;
+            padding: 10px;
+            border-left: 4px solid #4CAF50;
+            display: none; /* Hide by default */
+        }
+
+        footer {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 0;
+            text-align: center;
+        }
+
+        .result-card {
+            margin-top: 30px;
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .image-preview {
+            margin-top: 20px;
+            max-width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            display: none; /* Hide by default */
+        }
+
+        /* Responsive styling */
+        @media (max-width: 576px) {
+            .container {
+                margin-top: 50px;
+            }
+
+            .btn-custom {
+                width: 100%; /* Full width button on small screens */
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="background-illustrations"></div>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">🌿 Plant Health Pro</a>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-8 col-lg-6">
+                <div class="card mx-auto">
+                    <div class="card-body text-center">
+                        <h2 class="card-title mb-4">🌱 Plant Disease Detection 🌱</h2>
+                        <p class="card-text">Upload an image of a plant leaf to check its health or detect possible diseases.</p>
+
+                        <!-- Image upload form -->
+                        <form id="uploadForm" method="POST" enctype="multipart/form-data">
+                            <div class="mb-3">
+                                <input class="form-control form-control-lg" type="file" name="image" accept="image/*" required id="imageInput">
+                            </div>
+                            <button type="submit" class="btn btn-custom btn-lg">Upload and Predict</button>
+                        </form>
+
+                        <!-- Fun Fact Section -->
+                        <div id="funFact" class="fact-box">
+                            <strong>Did you know?</strong> Some plants have evolved natural defenses to fight off diseases. Keep your plants healthy and they may just surprise you!
+                        </div>
+
+                        <!-- Prediction Result -->
+                        {% if prediction %}
+                        <div class="result-card">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h4 class="card-title">Prediction Result</h4>
+                                    <p class="card-text">
+                                        <strong>Prediction:</strong> {{ prediction }}
+                                        <br>
+                                        <strong>Confidence Score:</strong> {{ probability }}%
+                                    </p>
+                                    <a href="https://www.google.com/search?q={{ prediction|replace(' ', '+') }}" class="btn btn-info" target="_blank">Know More</a> <!-- Link to Google search -->
+                                </div>
+                            </div>
+
+                            <!-- Tips for Care -->
+                            <div class="mt-3">
+                                <h5>Care Tips:</h5>
+                                <p>To maintain the health of your plant, ensure it receives adequate sunlight and water. Treat any diseases promptly to prevent further spread.</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer>
+        <p>&copy; Developed by Research and Development cell, Centre for Cognitive Activities 🌿</p>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Custom Script -->
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', function() {
+            // Show the progress bar and fun fact
+            document.getElementById('progressBar').style.display = 'block';
+            document.getElementById('funFact').style.display = 'block';
+            startProgressBar();
+        });
+
+        function startProgressBar() {
+            const progressBar = document.querySelector('.progress-bar');
+            let width = 0;
+            const interval = setInterval(function() {
+                if (width >= 100) {
+                    clearInterval(interval);
+                } else {
+                    width++;
+                    progressBar.style.width = width + '%';
+                }
+            }, 50);
+        }
+
+        // Preview the uploaded image
+        document.getElementById('imageInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imagePreview = document.getElementById('imagePreview');
+                    imagePreview.src = e.target.result;
+                    imagePreview.style.display = 'block'; // Show the image
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+</body>
+</html>
